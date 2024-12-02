@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서울 지하철 도착 정보</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .arrival {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>서울 지하철 도착 정보</h1>
+    <input type="text" id="stnName" placeholder="역 이름을 입력하세요">
+    <button onclick="fetchArrivals()">조회</button>
+    <div id="status">결과가 여기에 표시됩니다.</div>
+
+    <script>
+        const apiKey = '415565754e7477693436474556414c'; // 여기에 API 키를 입력하세요.
+
+        // 지하철 도착 정보 조회
+        async function fetchArrivals() {
+            const stationName = document.getElementById("stnName").value.trim(); // 입력된 역 이름
+            const statusDiv = document.getElementById("status"); // 결과를 표시할 div
+
+            // 입력값 검증
+            if (!stationName) {
+                statusDiv.innerHTML = '<p style="color:red;">역 이름을 입력해주세요.</p>';
+                return;
+            }
+
+            // API 호출
+            const API_URL = `https://api.seoul.go.kr/v1/subway/arrivals?station=${encodeURIComponent(stationName)}&apikey=${apiKey}`;
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error('데이터를 가져올 수 없습니다.');
+                }
+
+                const data = await response.json();
+                displayArrivals(data.arrivals); // 결과 출력
+            } catch (error) {
+                statusDiv.innerHTML = `<p style="color:red;">오류: ${error.message}</p>`;
+            }
+        }
+
+        // 결과 출력
+        function displayArrivals(arrivals) {
+            const statusDiv = document.getElementById("status");
+            if (arrivals && arrivals.length > 0) {
+                const html = arrivals.map(arrival => `
+                    <div class="arrival">
+                        <p><strong>노선:</strong> ${arrival.lineName}</p>
+                        <p><strong>도착 상태:</strong> ${arrival.status}</p>
+                        <p><strong>종착역:</strong> ${arrival.destination}</p>
+                        <p><strong>현재 위치:</strong> ${arrival.currentStation}</p>
+                        <p><strong>도착 예상 시간:</strong> ${arrival.arrivalTime || '정보 없음'}</p>
+                    </div>
+                `).join('');
+                statusDiv.innerHTML = html;
+            } else {
+                statusDiv.innerHTML = '<p>해당 역의 도착 정보가 없습니다.</p>';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,26 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subway Real-Time Status</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>지하철 실시간 도착 정보</title>
+   <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Real-Time Subway Status</h1>
-        <div class="station-select">
-            <label for="station">Select Station:</label>
-            <select id="station">
-                <option value="station1">Station 1</option>
-                <option value="station2">Station 2</option>
-                <option value="station3">Station 3</option>
-            </select>
-            <button id="refresh">Refresh</button>
-        </div>
-        <div id="status" class="status">
-            <p>Select a station to see real-time data.</p>
-        </div>
+        <h1>지하철 실시간 도착 정보 조회</h1>
+        <input type="text" id="input_stnName" placeholder="역 이름을 입력하세요">
+        <button id="searchButton">검색</button>
+        <div id="result"></div>
     </div>
     <script src="script.js"></script>
 </body>

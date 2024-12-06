@@ -1,53 +1,55 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const stationSelect = document.getElementById('station');
-    const refreshButton = document.getElementById('refresh');
-    const statusDiv = document.getElementById('status');
+const API_KEY = '415565754e7477693436474556414c'; // API 키
+        const BASE_API_URL = `http://swopenAPI.seoul.go.kr/api/subway/${API_KEY}/json/realtimeStationArrival/0/5/`;
+        
+        // API 호출 함수
+        async function fetchData(stationName) {
+            try {
+                const requestUrl = `${BASE_API_URL}${encodeURIComponent(stationName)}`;///encode 어쩌구 없어도 됨
+                console.log('Request URL:', requestUrl);
 
-    // Function to fetch subway data
-    async function fetchSubwayData(station) {
-        try {
-            // Replace with your actual API URL and API Key
-            const API_KEY = '415565754e7477693436474556414c';
-            const API_URL = `http://openapi.seoul.go.kr:8088/${API_KEY}/xml/CardSubwayStatsNew/1/5/20220301`;
-
-
-            const response = await fetch(API_URL, {
-                headers: {
-                    'Authorization': `Bearer ${API_KEY}`
+                const response = await fetch(requestUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch data');
+                const data = await response.json();
+                console.log('Fetched Data:', data);
+                return data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                throw error;
             }
-
-            const data = await response.json();
-            displayStatus(data);
-        } catch (error) {
-            statusDiv.innerHTML = `<p>Error fetching data: ${error.message}</p>`;
         }
-    }
 
-    // Function to display subway status
-    function displayStatus(data) {
-        if (data && data.length > 0) {
-            const html = data.map(train => `
-                <div class="train-info">
-                    <p><strong>Train:</strong> ${train.trainNumber}</p>
-                    <p><strong>Status:</strong> ${train.status}</p>
-                    <p><strong>Next Station:</strong> ${train.nextStation}</p>
-                </div>
-            `).join('');
-            statusDiv.innerHTML = html;
-        } else {
-            statusDiv.innerHTML = '<p>No trains available at the moment.</p>';
+        document.getElementById('searchButton').addEventListener('click', async function () {
+            const stationName = document.getElementById('input_stnName').value;
+
+            try {
+                const result = await fetchData(stationName);
+                displayResult(result);
+            } catch (error) {
+                document.getElementById('result').innerText = '데이터를 가져오는 데 실패했습니다: ' + error.message;
+            }
+        });
+
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = ''; // 이전 결과 초기화
+
+            if (data.realtimeArrivalList) {
+                const arrivals = data.realtimeArrivalList;
+
+                if (arrivals.length > 0) {
+                    arrivals.forEach(arrival => {
+                        const stationInfo = document.createElement('div');
+                        stationInfo.className = 'station';
+                        stationInfo.innerHTML = `<strong>${arrival.trainLineNm}</strong>: ${arrival.arrivalMsg} (${arrival.arrivalTime}초 후 도착)`;
+                        resultDiv.appendChild(stationInfo);
+                    });
+                } else {
+                    resultDiv.innerText = '해당 역의 정보가 없습니다.';
+                }
+            } else {
+                resultDiv.innerText = '데이터를 가져오는 데 문제가 발생했습니다.';
+            }
         }
-    }
-
-    // Event listener for refresh button
-    refreshButton.addEventListener('click', () => {
-        const station = stationSelect.value;
-        statusDiv.innerHTML = '<p>Loading...</p>';
-        fetchSubwayData(station);
-    });
-});

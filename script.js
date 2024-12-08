@@ -1,55 +1,69 @@
 const API_KEY = '415565754e7477693436474556414c'; // API 키
-        const BASE_API_URL = `http://swopenAPI.seoul.go.kr/api/subway/${API_KEY}/json/realtimeStationArrival/0/5/`;
-        
-        // API 호출 함수
-        async function fetchData(stationName) {
-            try {
-                const requestUrl = `${BASE_API_URL}${encodeURIComponent(stationName)}`;///encode 어쩌구 없어도 됨
-                console.log('Request URL:', requestUrl);
+const BASE_API_URL = `http://swopenAPI.seoul.go.kr/api/subway/${API_KEY}/json/realtimeStationArrival/0/5/`;
+let re = {} //key = 역 이름 value = 역 내부 코드
+import { train } from './stn_data.js'
+let fd = [] //역 이름
+for (let i = 0; i < train.DATA.length; i++) {
+    fd.push(train.DATA[i].station_nm)
+}
+for (let i = 0; i < train.DATA.length; i++) {
+    re[fd[i]] = train.DATA[i].station_cd
+}
 
-                const response = await fetch(requestUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
 
-                const data = await response.json();
-                console.log('Fetched Data:', data);
-                return data;
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                throw error;
-            }
+
+
+
+
+// API 호출 함수
+async function fetchData(stationName) {
+    try {
+        const requestUrl = `${BASE_API_URL}${encodeURIComponent(stationName)}`;///encode 어쩌구 없어도 됨
+        console.log('Request URL:', requestUrl);
+
+        const response = await fetch(requestUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        document.getElementById('searchButton').addEventListener('click', async function () {
-            const stationName = document.getElementById('input_stnName').value;
+        const data = await response.json();
+        console.log('Fetched Data:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        throw error;
+    }
+}
 
-            try {
-                const result = await fetchData(stationName);
-                displayResult(result);
-            } catch (error) {
-                document.getElementById('result').innerText = '데이터를 가져오는 데 실패했습니다: ' + error.message;
-            }
-        });
+document.getElementById('searchButton').addEventListener('click', async function () {
+    const stationName = document.getElementById('input_stnName').value;
 
-        function displayResult(data) {
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = ''; // 이전 결과 초기화
+    try {
+        const result = await fetchData(stationName);
+        displayResult(result);
+    } catch (error) {
+        document.getElementById('result').innerText = '데이터를 가져오는 데 실패했습니다: ' + error.message;
+    }
+});
 
-            if (data.realtimeArrivalList) {
-                const arrivals = data.realtimeArrivalList;
+function displayResult(data) {
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = ''; // 이전 결과 초기화
 
-                if (arrivals.length > 0) {
-                    arrivals.forEach(arrival => {
-                        const stationInfo = document.createElement('div');
-                        stationInfo.className = 'station';
-                        stationInfo.innerHTML = `<strong>${arrival.trainLineNm}</strong>: ${arrival.arrivalMsg} (${arrival.arrivalTime}초 후 도착)`;
-                        resultDiv.appendChild(stationInfo);
-                    });
-                } else {
-                    resultDiv.innerText = '해당 역의 정보가 없습니다.';
-                }
-            } else {
-                resultDiv.innerText = '데이터를 가져오는 데 문제가 발생했습니다.';
-            }
+    if (data.realtimeArrivalList) {
+        const arrivals = data.realtimeArrivalList;
+
+        if (arrivals.length > 0) {
+            arrivals.forEach(arrival => {
+                const stationInfo = document.createElement('div');
+                stationInfo.className = 'station';
+                stationInfo.innerHTML = `<strong>${arrival.trainLineNm}</strong>: ${arrival.arvlMsg2}`;
+                resultDiv.appendChild(stationInfo);
+            });
+        } else {
+            resultDiv.innerText = '해당 역의 정보가 없습니다.';
         }
+    } else {
+        resultDiv.innerText = '데이터를 가져오는 데 문제가 발생했습니다.';
+    }
+}
